@@ -1,0 +1,11 @@
+# Ignore IDE and editor files
+.vscode/
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+
+# Ignore Thumbs.db files (Windows)
+Thumbs.db
+
+target/
