@@ -2,43 +2,71 @@
 
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
 <AnchorPane minHeight="400.0" minWidth="600.0" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.folderextractor.controllers.ExtractWindowController">
    <children>
-      <SplitPane dividerPositions="0.5" orientation="VERTICAL" AnchorPane.bottomAnchor="55.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0">
+      <SplitPane dividerPositions="0.5" orientation="VERTICAL" AnchorPane.bottomAnchor="95.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0">
         <items>
             <SplitPane dividerPositions="0.5">
                <items>
-                  <TextArea fx:id="list" editable="false" focusTraversable="false" promptText="Extracted files appear here..." wrapText="true" />
                   <TextArea fx:id="extensionlist" focusTraversable="false" layoutX="10.0" layoutY="10.0" promptText="File types to extract (leave blank to extract all, one extension per line ie. jpg)" wrapText="true" />
+                  <TextArea fx:id="list" editable="false" focusTraversable="false" promptText="Extracted files appear here..." wrapText="true" />
                </items>
             </SplitPane>
             <TextArea fx:id="console" editable="false" focusTraversable="false" prefHeight="155.0" prefWidth="665.0" promptText="Logs appear here" wrapText="true" />
         </items>
       </SplitPane>
-      <HBox spacing="15.0" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0">
+      <HBox alignment="CENTER_LEFT" spacing="15.0" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0">
          <children>
-            <Button fx:id="scanButton" mnemonicParsing="false" onAction="#onScanButton" prefHeight="25.0" prefWidth="55.0" text="Scan">
+            <Button fx:id="scanButton" mnemonicParsing="false" onAction="#onScanButton" prefHeight="25.0" prefWidth="55.0" text="Extract">
                <cursor>
                   <Cursor fx:constant="HAND" />
                </cursor>
             </Button>
+            <CheckBox fx:id="copyCheckBox" mnemonicParsing="false" text="Copy files">
+               <tooltip>
+                  <Tooltip text="Copy files found into destination folder instead of moving" />
+               </tooltip>
+            </CheckBox>
          </children>
       </HBox>
-      <HBox AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="15.0">
+      <VBox spacing="15.0" AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="15.0">
          <children>
-            <TextField fx:id="pathTextField" prefHeight="25.0" prefWidth="350.0" promptText="Path...">
-               <cursor>
-                  <Cursor fx:constant="TEXT" />
-               </cursor>
-            </TextField>
-            <Button fx:id="folderButton" mnemonicParsing="false" onAction="#onFolderButtonClicked" text="Folder..." />
+            <HBox>
+               <children>
+                  <TextField fx:id="targetPathTextField" prefHeight="25.0" prefWidth="350.0" promptText="Target Path...">
+                     <cursor>
+                        <Cursor fx:constant="TEXT" />
+                     </cursor>
+                     <tooltip>
+                        <Tooltip text="Folder to extract files from" />
+                     </tooltip>
+                  </TextField>
+                  <Button fx:id="targetFolderButton" mnemonicParsing="false" onAction="#onTargetFolderButtonClicked" text="Folder..." />
+               </children>
+            </HBox>
+            <HBox>
+               <children>
+                  <TextField fx:id="destinationPathTextField" prefHeight="25.0" prefWidth="350.0" promptText="Destination Path...">
+                     <cursor>
+                        <Cursor fx:constant="TEXT" />
+                     </cursor>
+                     <tooltip>
+                        <Tooltip text="Folder to place extracted files in" />
+                     </tooltip>
+                  </TextField>
+                  <Button fx:id="destinationFolderButton" mnemonicParsing="false" onAction="#onDestinationFolderButtonClicked" text="Folder..." />
+               </children>
+            </HBox>
          </children>
-      </HBox>
+      </VBox>
    </children>
 </AnchorPane>
