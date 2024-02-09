@@ -12,7 +12,9 @@ import java.util.Arrays;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -31,6 +33,7 @@ public class ExtractWindowController {
     @FXML private TextField targetPathTextField;
     @FXML private TextField destinationPathTextField;
     @FXML private CheckBox copyCheckBox;
+    @FXML private CheckBox separateCheckBox;
 
     private String userDesktopPath;
     private boolean useExtensionfilter;
@@ -47,81 +50,111 @@ public class ExtractWindowController {
 
     @FXML
     private void onScanButton(){
-        String targetPathString = targetPathTextField.getText();
-        String destinationPathString = destinationPathTextField.getText();
-        disableAllButtons();
-        console.appendText("Extracting: "+ targetPathString + "\n");
-        fileNames.clear();
-        list.clear();
-        extensions.clear();
-        useExtensionfilter = false;
-        
-        if(extensionlist.getText().length() > 0){
-            useExtensionfilter = true;
-            extensions = Arrays.asList(extensionlist.getText().split("\n"));
-            for(String i: extensions){
-                i = i.toLowerCase();
-                System.out.println(i);
-            }
+        String alertString;
+        if(copyCheckBox.isSelected() && separateCheckBox.isSelected()){
+            alertString = "This will copy all files in the target directory to the destination directory and separate them by extension \n\n "
+                        + "WARNING: Destination directory must be empty";
+        } else if(copyCheckBox.isSelected()&&!separateCheckBox.isSelected()){
+            alertString = "This will copy all files in the target directory to the destination directory";
+        } else if(!copyCheckBox.isSelected() && separateCheckBox.isSelected()){
+            alertString = "This will move all files in the target directory to the destination directory and separate them by extension \n\n "
+                        + "WARNING: Destination directory must be empty"
+                        + "WARNING: This will empty the target directory";
+        } else {
+            alertString = "This will move all files in the target directory to the destination directory"
+                        + "WARNING: This will empty the target directory";
         }
-        Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                File targetPath = new File(targetPathString);
-                if(!targetPath.exists()){
-                    Platform.runLater(() -> {
-                        console.appendText("Path does not exist\n\n");
-                        enableAllButtons();
-                    });
-                    return null;
-                } else if(!targetPath.isDirectory()){
-                    Platform.runLater(() -> {
-                        console.appendText("Path is not a directory\n\n");
-                        enableAllButtons();
-                    });
-                    return null;
-                } else {
-                    Platform.runLater(() -> {
-                        console.appendText("Extracting files...\n");
-                    });
-                File destinationPath = new File(destinationPathString);
-                if(!destinationPath.exists()){
-
-                    boolean success = destinationPath.mkdirs();
-                    if(!success){
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, alertString, ButtonType.OK, ButtonType.CANCEL);
+        alert.setTitle("Warning");
+        alert.setHeaderText("Are you sure you want to scan the directory?");
+        alert.showAndWait();
+        if(alert.getResult() == ButtonType.OK){
+            Task<Void> task = new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {
+    
+                    String targetPathString = targetPathTextField.getText();
+                    String destinationPathString = destinationPathTextField.getText();
+                    disableAllButtons();
+                    console.appendText("Extracting: "+ targetPathString + "\n");
+                    fileNames.clear();
+                    list.clear();
+                    extensions.clear();
+                    useExtensionfilter = false;
+                    
+                    if(extensionlist.getText().length() > 0){
+                        useExtensionfilter = true;
+                        extensions = Arrays.asList(extensionlist.getText().split("\n"));
+                        for(String i: extensions){
+                            i = i.toLowerCase();
+                            System.out.println(i);
+                        }
+                    }
+                    File targetPath = new File(targetPathString);
+                    if(!targetPath.exists()){
                         Platform.runLater(() -> {
-                            console.appendText("Failed to create destination directory\n\n");
+                            console.appendText("Path does not exist\n\n");
                             enableAllButtons();
                         });
                         return null;
+                    } else if(!targetPath.isDirectory()){
+                        Platform.runLater(() -> {
+                            console.appendText("Path is not a directory\n\n");
+                            enableAllButtons();
+                        });
+                        return null;
+                    } else {
+                        Platform.runLater(() -> {
+                            console.appendText("Extracting files...\n");
+                        });
+                    File destinationPath = new File(destinationPathString);
+                    if(!destinationPath.exists()){
+    
+                        boolean success = destinationPath.mkdirs();
+                        if(!success){
+                            Platform.runLater(() -> {
+                                console.appendText("Failed to create destination directory\n\n");
+                                enableAllButtons();
+                            });
+                            return null;
+                        }
+                    } else if(destinationPath.isFile()){
+                        Platform.runLater(() -> {
+                            console.appendText("Destination is a file\n\n");
+                            enableAllButtons();
+                        });
+                        return null;
+                    } else {
+                        scanDestination(destinationPath);
+                        for(String i: fileNames.values()){
+                            System.out.println(i);
+                        }
+                    } 
+    
+                    if(separateCheckBox.isSelected() && destinationPath.listFiles().length > 0){
+                        Platform.runLater(() -> {
+                            console.appendText("Destination directory is not empty\n\n");
+                            enableAllButtons();
+                        });
+                        return null;  
                     }
-                } else if(destinationPath.isFile()){
-                    Platform.runLater(() -> {
-                        console.appendText("Destination is a file\n\n");
-                        enableAllButtons();
-                    });
+    
+                    // get all files in the directory
+                    if(copyCheckBox.isSelected()){
+                        recursiveFileCopier(targetPath, destinationPath);
+                    } else {
+                        recursiveFileExtractor(targetPath, destinationPath);
+                    }     
                     return null;
-                } else {
-                    scanDestination(destinationPath);
-                    for(String i: fileNames.values()){
-                        System.out.println(i);
                     }
-                } 
-                // get all files in the directory
-                if(copyCheckBox.isSelected()){
-                    recursiveFileCopier(targetPath, destinationPath);
-                } else {
-                    recursiveFileExtractor(targetPath, destinationPath);
-                }     
-                return null;
                 }
-            }
-        };
-        task.setOnSucceeded(e -> {
-            console.appendText("\nExtraction complete\n\n");
-            enableAllButtons();
-        });
-        new Thread(task).start();
+            };
+            task.setOnSucceeded(e -> {
+                console.appendText("\nExtraction complete\n\n");
+                enableAllButtons();
+            });
+            new Thread(task).start();
+        }
     }
 
     @FXML
@@ -219,16 +252,37 @@ public class ExtractWindowController {
         }
         return true;
     }
+
+    private void createExtensionDestination(File destination, String extension){
+        if(extension.equals("")){
+            extension = "No Extension";
+        }
+        File newDestination = new File(destination.getAbsolutePath() + File.separator + extension);
+        if(!newDestination.exists()){
+            newDestination.mkdirs();
+        }
+    }
     
     private void recursiveFileCopier (File path, File destination){
         for(File f: path.listFiles()){
+            if(f.getAbsolutePath().equals(destination.getAbsolutePath())){
+                System.out.println("skipped");
+                continue;
+            }
             if(f.isDirectory()){
+                Platform.runLater(() -> {
+                    console.appendText("Extracting: " + f.getAbsolutePath() + "\n");
+                });
                 recursiveFileCopier(f, destination);
             } else {
 
                 String[] originalFileName = getFilenameAndExtension(f);
                 if(isExtensionValid(originalFileName[1])){
                     String newFileName = getUniqueName(originalFileName);
+                    if(separateCheckBox.isSelected()){
+                        createExtensionDestination(destination, originalFileName[1]);
+                        newFileName = originalFileName[1] + File.separator + newFileName;
+                    }
                     try {
                         Files.copy(f.toPath(), new File(destination.getAbsolutePath() + File.separator + newFileName).toPath(), 
                         java.nio.file.StandardCopyOption.COPY_ATTRIBUTES, 
@@ -252,12 +306,23 @@ public class ExtractWindowController {
 
     private void recursiveFileExtractor(File path, File destination){
         for(File f: path.listFiles()){
+            if(f.getAbsolutePath().equals(destination.getAbsolutePath())){
+                System.out.println("skipped");
+                continue;
+            }
             if(f.isDirectory()){
+                Platform.runLater(() -> {
+                    console.appendText("Extracting: " + f.getAbsolutePath() + "\n");
+                });
                 recursiveFileExtractor(f, destination);
             } else {
                 String[] originalFileName = getFilenameAndExtension(f);
                 if(isExtensionValid(originalFileName[1])){
                     String newFileName = getUniqueName(originalFileName);
+                    if(separateCheckBox.isSelected()){
+                        createExtensionDestination(destination, originalFileName[1]);
+                        newFileName = originalFileName[1] + File.separator + newFileName;
+                    }
                     f.renameTo(new File(destination.getAbsolutePath() + File.separator + newFileName));
                     String finalFileName = newFileName;
                     Platform.runLater(() -> {

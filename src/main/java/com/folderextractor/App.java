@@ -34,13 +34,10 @@ public class App extends Application{
 
     @Override
     public void start(Stage stage) throws IOException {
-      // set errors and output to log.txt
-      System.setErr(new java.io.PrintStream(new java.io.FileOutputStream("log.txt")));
-      System.setOut(new java.io.PrintStream(new java.io.FileOutputStream("log.txt")));
       // load fxml file
       scene = new Scene(loadFXML("extractionwindow"));
-      stage.setMinWidth(615);
-      stage.setMinHeight(400);
+      stage.setMinWidth(800);
+      stage.setMinHeight(600);
       stage.setTitle("Folder Extractor");
       stage.setScene(scene);
       stage.show();
