@@ -1,10 +1,12 @@
 # folderextractor
 
-A Javafx app for Windows to extract all files within a folder and its subfolders. Bundled with a Java runtime image so that Java isn't required.
+A Javafx app for Windows to extract all files within a folder and its subfolders.
 
 # Requirements:
 
 Windows
+
+Java 17 (You can download here: https://github.com/corretto/corretto-17/releases)
 
 # Usage
 
